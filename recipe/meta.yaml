@@ -44,7 +44,6 @@ outputs:
 
     requirements:
       build:
-        - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - {{ compiler('cuda') }}                              # [(gpu_variant or "").startswith("cuda")]
