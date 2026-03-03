@@ -58,9 +58,9 @@ outputs:
         - libcublas-dev                                       # [(gpu_variant or "").startswith("cuda")]
         - cudnn                                               # [(gpu_variant or "").startswith("cuda")]
         - cuda-compat      {{ cuda_compiler_version }}        # [(gpu_variant or "").startswith("cuda") and linux]
-        - mkl-devel {{ mkl }}                                 # [blas_impl == "mkl"]
-        - intel-openmp {{ mkl }}                              # [blas_impl == "mkl"]
-        - openblas-devel {{ openblas }}                       # [blas_impl == "openblas"]
+        - mkl-devel                                            # [blas_impl == "mkl"]
+        - intel-openmp                                        # [blas_impl == "mkl"]
+        - openblas-devel                                      # [blas_impl == "openblas"]
         - llvm-openmp                                         # [osx]
       run:
         - {{ pin_compatible('cuda-version', max_pin='x.x') }}  # [(gpu_variant or "").startswith("cuda")]
