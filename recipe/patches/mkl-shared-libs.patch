@@ -1,6 +1,9 @@
+Use shared MKL libraries (.so) instead of static (.a) on Linux.
+Conda's mkl-devel provides shared libraries only.
+
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -389,9 +389,9 @@
+@@ -386,8 +386,8 @@
    else()
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
      set(MKL_LIBRARIES
@@ -11,9 +14,7 @@
        )
    endif()
 
-   if(OPENMP_RUNTIME STREQUAL "INTEL")
-@@ -401,14 +401,14 @@
-       list(APPEND MKL_LIBRARIES ${MKL_LIBRARY_DIR}/libmkl_intel_thread.a)
+@@ -398,13 +398,13 @@
      endif()
    elseif(OPENMP_RUNTIME STREQUAL "COMP")
      if(WIN32)
