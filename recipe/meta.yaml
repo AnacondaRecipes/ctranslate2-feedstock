@@ -10,7 +10,8 @@ source:
   - url: https://github.com/OpenNMT/CTranslate2/archive/refs/tags/v{{ version }}.tar.gz
     sha256: 64beb499c1e33500a691dfbe10cc5def7b914413c7f7c2830b0e0d8d544a9f7e
     patches:
-      - patches/mkl-shared-libs.patch  # [linux]
+      - patches/mkl-shared-libs.patch      # [linux]
+      - patches/use-system-thrust.patch    # [(gpu_variant or "").startswith("cuda")]
   - url: https://github.com/gabime/spdlog/archive/v1.14.1.tar.gz
     sha256: 1586508029a7d0670dfcb2d97575dcdc242d3868a259742b69f100801ab4e16b
     folder: third_party/spdlog
@@ -20,12 +21,6 @@ source:
   - url: https://github.com/google/cpu_features/archive/v0.9.0.tar.gz
     sha256: bdb3484de8297c49b59955c3b22dba834401bc2df984ef5cfc17acbe69c5018e
     folder: third_party/cpu_features
-  - url: https://github.com/NVIDIA/thrust/archive/d997cd37a95b0fa2f1a0cd4697fd1188a842fbc8.tar.gz
-    sha256: 940e45a615f690f9f4adabae60c9da1956f5759b2e1ba58021c0a82897726ae0
-    folder: third_party/thrust
-  - url: https://github.com/NVIDIA/cub/archive/ed040d585c3237d706973d7ad290bfee40958270.tar.gz
-    sha256: 6fb9575afb1ea85f7284f0e27387dab765e240b2f0963b46e11f43b1cf0010a5
-    folder: third_party/thrust/dependencies/cub
 
 build:
   number: {{ build_number }}
