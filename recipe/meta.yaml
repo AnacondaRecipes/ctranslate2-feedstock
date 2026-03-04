@@ -9,6 +9,8 @@ package:
 source:
   - url: https://github.com/OpenNMT/CTranslate2/archive/refs/tags/v{{ version }}.tar.gz
     sha256: 64beb499c1e33500a691dfbe10cc5def7b914413c7f7c2830b0e0d8d544a9f7e
+    patches:
+      - patches/mkl-shared-libs.patch  # [linux]
   - url: https://github.com/gabime/spdlog/archive/v1.14.1.tar.gz
     sha256: 1586508029a7d0670dfcb2d97575dcdc242d3868a259742b69f100801ab4e16b
     folder: third_party/spdlog
