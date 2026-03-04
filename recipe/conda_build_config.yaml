@@ -1,3 +1,8 @@
+c_compiler:                        # [win]
+  - vs2019                         # [win]
+cxx_compiler:                      # [win]
+  - vs2019                         # [win]
+
 blas_impl:
   - mkl                        # [win or (linux and x86_64)]
   - openblas                   # [linux]
@@ -7,6 +12,9 @@ blas_impl:
 gpu_variant:
   - none
   - cuda-12                    # [win or linux]
+
+cuda_compiler:                 # [win or linux]
+  - cuda-nvcc                  # [win or linux]
 
 cuda_compiler_version:         # [win or linux]
   - none                       # [win or linux]
