@@ -1,5 +1,7 @@
 Use system thrust/cub from the CUDA toolkit instead of bundled submodules.
 Conda's cuda-cccl package provides thrust and cub headers in the CUDA toolkit.
+Also add missing explicit thrust includes that the bundled version provided
+transitively but the system CUDA toolkit version does not.
 
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
@@ -16,3 +18,41 @@ Conda's cuda-cccl package provides thrust and cub headers in the CUDA toolkit.
    cuda_include_directories(${THRUST_INCLUDE_DIRS})
    list(APPEND PRIVATE_INCLUDE_DIRECTORIES ${THRUST_INCLUDE_DIRS})
 
+--- a/src/cuda/helpers.h
++++ b/src/cuda/helpers.h
+@@ -10,6 +10,11 @@
+ #define __nv_bfloat16 __hip_bfloat16
+ #else
+ #include <cuda_fp16.h>
++#include <thrust/copy.h>
++#include <thrust/functional.h>
++#include <thrust/iterator/counting_iterator.h>
++#include <thrust/iterator/permutation_iterator.h>
++#include <thrust/iterator/transform_iterator.h>
++#include <thrust/transform.h>
+ #include <cuda_bf16.h>
+ #endif
+
+--- a/src/cuda/primitives.cu
++++ b/src/cuda/primitives.cu
+@@ -29,6 +29,10 @@
+ #endif
+ #include <thrust/device_ptr.h>
++#include <thrust/extrema.h>
++#include <thrust/fill.h>
++#include <thrust/functional.h>
++#include <thrust/reduce.h>
+
+ #include "cuda/helpers.h"
+ #include "type_dispatch.h"
+--- a/src/ops/bias_add_gpu.cu
++++ b/src/ops/bias_add_gpu.cu
+@@ -2,6 +2,8 @@
+
+ #include "type_dispatch.h"
+ #include "cuda/helpers.h"
++#include <thrust/iterator/zip_iterator.h>
++#include <thrust/tuple.h>
+
+ namespace ctranslate2 {
+   namespace ops {
