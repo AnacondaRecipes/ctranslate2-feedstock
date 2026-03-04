@@ -20,6 +20,12 @@ source:
   - url: https://github.com/google/cpu_features/archive/v0.9.0.tar.gz
     sha256: bdb3484de8297c49b59955c3b22dba834401bc2df984ef5cfc17acbe69c5018e
     folder: third_party/cpu_features
+  - url: https://github.com/NVIDIA/thrust/archive/d997cd37a95b0fa2f1a0cd4697fd1188a842fbc8.tar.gz
+    sha256: 940e45a615f690f9f4adabae60c9da1956f5759b2e1ba58021c0a82897726ae0
+    folder: third_party/thrust
+  - url: https://github.com/NVIDIA/cub/archive/ed040d585c3237d706973d7ad290bfee40958270.tar.gz
+    sha256: 6fb9575afb1ea85f7284f0e27387dab765e240b2f0963b46e11f43b1cf0010a5
+    folder: third_party/thrust/dependencies/cub
 
 build:
   number: {{ build_number }}
@@ -55,6 +61,7 @@ outputs:
         - cuda-version     {{ cuda_compiler_version }}        # [(gpu_variant or "").startswith("cuda")]
         - cuda-cudart-dev  {{ cuda_compiler_version }}        # [(gpu_variant or "").startswith("cuda")]
         - libcublas-dev                                       # [(gpu_variant or "").startswith("cuda")]
+        - libcurand-dev                                      # [(gpu_variant or "").startswith("cuda")]
         - cudnn                                               # [(gpu_variant or "").startswith("cuda")]
         - cuda-compat      {{ cuda_compiler_version }}        # [(gpu_variant or "").startswith("cuda") and linux]
         - mkl-devel                                           # [blas_impl == "mkl"]
