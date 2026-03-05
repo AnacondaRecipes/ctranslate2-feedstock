@@ -12,6 +12,7 @@ if "%gpu_variant:~0,5%"=="cuda-" (
 
 REM --- BLAS selection ---
 if "%blas_impl%"=="mkl" (
+    set "MKLROOT=%LIBRARY_PREFIX%"
     set CMAKE_ARGS_EXTRA=!CMAKE_ARGS_EXTRA! -DWITH_MKL=ON -DWITH_OPENBLAS=OFF -DWITH_ACCELERATE=OFF
     set CMAKE_ARGS_EXTRA=!CMAKE_ARGS_EXTRA! -DOPENMP_RUNTIME=INTEL
 ) else if "%blas_impl%"=="openblas" (
@@ -30,6 +31,7 @@ cmake -S . -B build ^
     %CMAKE_ARGS% ^
     -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% ^
     -DCMAKE_PREFIX_PATH=%LIBRARY_PREFIX% ^
+    -DCMAKE_LIBRARY_PATH=%LIBRARY_LIB% ^
     -DCMAKE_BUILD_TYPE=Release ^
     -DBUILD_SHARED_LIBS=ON ^
     -DBUILD_CLI=OFF ^
