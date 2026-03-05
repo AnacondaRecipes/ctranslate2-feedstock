@@ -20,7 +20,7 @@ transitively but the system CUDA toolkit version does not.
 
 --- a/src/cuda/helpers.h
 +++ b/src/cuda/helpers.h
-@@ -10,6 +10,11 @@
+@@ -11,5 +11,11 @@
  #define __nv_bfloat16 __hip_bfloat16
  #else
  #include <cuda_fp16.h>
@@ -32,10 +32,9 @@ transitively but the system CUDA toolkit version does not.
 +#include <thrust/transform.h>
  #include <cuda_bf16.h>
  #endif
-
 --- a/src/cuda/primitives.cu
 +++ b/src/cuda/primitives.cu
-@@ -29,6 +29,10 @@
+@@ -30,4 +30,8 @@
  #endif
  #include <thrust/device_ptr.h>
 +#include <thrust/extrema.h>
@@ -44,15 +43,12 @@ transitively but the system CUDA toolkit version does not.
 +#include <thrust/reduce.h>
 
  #include "cuda/helpers.h"
- #include "type_dispatch.h"
 --- a/src/ops/bias_add_gpu.cu
 +++ b/src/ops/bias_add_gpu.cu
-@@ -2,6 +2,8 @@
-
+@@ -3,4 +3,6 @@
  #include "type_dispatch.h"
  #include "cuda/helpers.h"
 +#include <thrust/iterator/zip_iterator.h>
 +#include <thrust/tuple.h>
 
  namespace ctranslate2 {
-   namespace ops {
