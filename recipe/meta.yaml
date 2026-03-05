@@ -41,6 +41,7 @@ outputs:
       string: cpu_{{ blas_impl }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                 # [gpu_variant == "none"]
       missing_dso_whitelist:                        # [(gpu_variant or "").startswith("cuda")]
         - "**/libcuda.so*"                          # [(gpu_variant or "").startswith("cuda")]
+        - "**/libcudnn.so*"                         # [(gpu_variant or "").startswith("cuda")]
         - "**/nvcuda.dll"                           # [(gpu_variant or "").startswith("cuda")]
       run_exports:
         - {{ pin_subpackage('libctranslate2', exact=True) }}
