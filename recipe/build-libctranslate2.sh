@@ -8,6 +8,10 @@ if [[ ${gpu_variant:0:5} = "cuda-" ]]; then
     CMAKE_ARGS_EXTRA="${CMAKE_ARGS_EXTRA} -DWITH_CUDA=ON -DWITH_CUDNN=ON -DCUDA_DYNAMIC_LOADING=ON"
     # cuda-compat provided libcuda.so.1
     LDFLAGS="$LDFLAGS -Wl,-rpath-link,${PREFIX}/cuda-compat/"
+    # cicc (NVCC internal compiler) lives in nvvm/bin, not on PATH by default
+    if [[ -d "${BUILD_PREFIX}/nvvm/bin" ]]; then
+        export PATH="${PATH}:${BUILD_PREFIX}/nvvm/bin"
+    fi
 else
     CMAKE_ARGS_EXTRA="${CMAKE_ARGS_EXTRA} -DWITH_CUDA=OFF -DWITH_CUDNN=OFF"
 fi
