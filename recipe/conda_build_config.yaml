@@ -19,6 +19,8 @@ blas_impl:
 gpu_variant:
   - none
   - cuda-12                    # [win or linux]
+  - cuda-13                    # [win or linux]
+  - cuda-13                    # [win or linux]
 
 cuda_compiler:                 # [win or linux]
   - cuda-nvcc                  # [win or linux]
@@ -26,6 +28,8 @@ cuda_compiler:                 # [win or linux]
 cuda_compiler_version:         # [win or linux]
   - none                       # [win or linux]
   - 12.8                       # [win or linux]
+  - 13.0                       # [win or linux]
+  - 13.1                       # [win or linux]
 
 zip_keys:                      # [win or linux]
   -                            # [win or linux]
