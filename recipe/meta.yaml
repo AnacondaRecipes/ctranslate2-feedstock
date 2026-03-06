@@ -62,15 +62,15 @@ outputs:
         - libcurand-dev                                      # [(gpu_variant or "").startswith("cuda")]
         - cudnn                                               # [(gpu_variant or "").startswith("cuda")]
         - cuda-compat      {{ cuda_compiler_version }}        # [(gpu_variant or "").startswith("cuda") and linux]
-        - mkl-devel                                           # [blas_impl == "mkl"]
-        - intel-openmp                                        # [blas_impl == "mkl"]
-        - openblas-devel                                      # [blas_impl == "openblas"]
-        - llvm-openmp                                         # [osx]
+        - mkl-devel {{ mkl }}                                    # [blas_impl == "mkl"]
+        - intel-openmp                                        # [blas_impl == "mkl" and win]
+        - openblas-devel {{ openblas }}                        # [blas_impl == "openblas"]
+        - llvm-openmp {{ cxx_compiler_version }}               # [osx]
       run:
         - {{ pin_compatible('cuda-version', max_pin='x.x') }}  # [(gpu_variant or "").startswith("cuda")]
         - cuda-version     {{ cuda_compiler_version }}          # [(gpu_variant or "").startswith("cuda")]
         - __cuda                                                # [(gpu_variant or "").startswith("cuda")]
-        - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl"]
+        - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl" and win]
         - llvm-openmp                                           # [osx]
         - _openmp_mutex                                         # [linux]
 
@@ -88,6 +88,7 @@ outputs:
       license_family: MIT
       license_file: LICENSE
       dev_url: https://github.com/OpenNMT/CTranslate2
+      doc_url: https://opennmt.net/CTranslate2
 
   - name: ctranslate2
     script: build-ctranslate2.sh   # [not win]
@@ -97,6 +98,7 @@ outputs:
     build:
       # Match skip logic from libctranslate2
       skip: true  # [((gpu_variant or "").startswith("cuda") and (blas_impl != "cublas")) or (not (gpu_variant or "").startswith("cuda") and (blas_impl == "cublas"))]
+      skip: true  # [py<39]
       number: {{ build_number + 100 }}  # [gpu_variant != "none"]
       number: {{ build_number }}        # [gpu_variant == "none"]
       string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [(gpu_variant or "").startswith("cuda")]
@@ -104,6 +106,14 @@ outputs:
       missing_dso_whitelist:                        # [(gpu_variant or "").startswith("cuda")]
         - "**/libcuda.so*"                          # [(gpu_variant or "").startswith("cuda")]
         - "**/nvcuda.dll"                           # [(gpu_variant or "").startswith("cuda")]
+      entry_points:
+        - ct2-fairseq-converter = ctranslate2.converters.fairseq:main
+        - ct2-marian-converter = ctranslate2.converters.marian:main
+        - ct2-openai-gpt2-converter = ctranslate2.converters.openai_gpt2:main
+        - ct2-opennmt-py-converter = ctranslate2.converters.opennmt_py:main
+        - ct2-opennmt-tf-converter = ctranslate2.converters.opennmt_tf:main
+        - ct2-opus-mt-converter = ctranslate2.converters.opus_mt:main
+        - ct2-transformers-converter = ctranslate2.converters.transformers:main
 
     requirements:
       build:
@@ -129,6 +139,10 @@ outputs:
       commands:
         - pip check
         - python -c "from ctranslate2.converters import opennmt_py"
+        - python -c "from ctranslate2.converters import fairseq"
+        - python -c "from ctranslate2.converters import openai_gpt2"
+        - python -c "from ctranslate2.converters import opus_mt"
+        - python -c "from ctranslate2.converters import opennmt_tf"
         - ct2-opennmt-py-converter --help  # [not win]
       requires:
         - pip
@@ -140,6 +154,7 @@ outputs:
       license_family: MIT
       license_file: LICENSE
       dev_url: https://github.com/OpenNMT/CTranslate2
+      doc_url: https://opennmt.net/CTranslate2
 
 about:
   home: https://github.com/OpenNMT/CTranslate2

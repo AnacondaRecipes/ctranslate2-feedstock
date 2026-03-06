@@ -1,7 +1,14 @@
+# vs2019 required for CUDA NVCC compatibility on Windows
 c_compiler:                        # [win]
   - vs2019                         # [win]
 cxx_compiler:                      # [win]
   - vs2019                         # [win]
+
+mkl:
+  - '2025'                         # [win or (linux and x86_64)]
+
+openblas:
+  - 0                              # [linux]
 
 blas_impl:
   - mkl                        # [win or (linux and x86_64)]
