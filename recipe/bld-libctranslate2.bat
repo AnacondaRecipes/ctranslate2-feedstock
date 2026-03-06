@@ -6,6 +6,8 @@ set CMAKE_ARGS_EXTRA=
 REM --- GPU selection ---
 if "%gpu_variant:~0,5%"=="cuda-" (
     set CMAKE_ARGS_EXTRA=!CMAKE_ARGS_EXTRA! -DWITH_CUDA=ON -DWITH_CUDNN=ON -DCUDA_DYNAMIC_LOADING=ON
+    REM CCCL 2.x headers use complex variadic macros requiring MSVC conformant preprocessor
+    set CMAKE_ARGS_EXTRA=!CMAKE_ARGS_EXTRA! -DCUDA_NVCC_FLAGS=-Xcompiler=/Zc:preprocessor
 ) else (
     set CMAKE_ARGS_EXTRA=!CMAKE_ARGS_EXTRA! -DWITH_CUDA=OFF -DWITH_CUDNN=OFF
 )
