@@ -1,33 +1,31 @@
 Fix CUDA 13 (CCCL 2.8+) compatibility: cub::FpLimits and thrust::identity removed.
 
 cub::FpLimits was removed in CCCL 2.8+ (CUDA 13). Use version-guarded
-replacement with cuda::std::numeric_limits for CUDA 13+, keeping
-cub::FpLimits for CUDA 12.
+macro CT2_FP_LOWEST(T) with cuda::std::numeric_limits for CUDA 13+,
+keeping cub::FpLimits for CUDA 12.
 
 thrust::identity<T> was removed in CCCL 2.8+. Provide a simple
 identity functor that works across all CUDA versions.
 
 --- a/src/ops/topk_gpu.cu
 +++ b/src/ops/topk_gpu.cu
-@@ -136,8 +136,18 @@
+@@ -136,6 +136,16 @@
  }
  #else
  #include <cub/block/block_reduce.cuh>
 +#if __CUDACC_VER_MAJOR__ >= 13
 +#include <cuda/std/limits>
 +#endif
- #endif
-
++#endif
++
 +// cub::FpLimits<T>::Lowest() was removed in CCCL 2.8+ (CUDA 13).
 +#if __CUDACC_VER_MAJOR__ >= 13
 +#define CT2_FP_LOWEST(T) cuda::std::numeric_limits<T>::lowest()
 +#else
 +#define CT2_FP_LOWEST(T) cub::FpLimits<T>::Lowest()
-+#endif
-+
- #define NOT_FOUND -1
+ #endif
 
-   template <typename T>
+ namespace fastertransformer {
 @@ -157,7 +167,7 @@
    template <typename T>
    struct TopK {
@@ -56,6 +54,7 @@ identity functor that works across all CUDA versions.
        __syncthreads();
      }
 @@ -259,7 +269,7 @@
+
        if (tid == 0) {
          topks[ite] = total;
 -        s_val[total.p] = cub::FpLimits<T>::Lowest();
@@ -65,11 +64,10 @@ identity functor that works across all CUDA versions.
      }
 --- a/src/ops/dequantize_gpu.cu
 +++ b/src/ops/dequantize_gpu.cu
-@@ -1,6 +1,15 @@
- #include "ctranslate2/ops/dequantize.h"
+@@ -2,6 +2,15 @@
 
  #include "cuda/helpers.h"
-+
+
 +// thrust::identity<T> was removed in CCCL 2.8+ (CUDA 13).
 +// Provide a simple replacement that works across all CUDA versions.
 +namespace ctranslate2 {
@@ -78,9 +76,10 @@ identity functor that works across all CUDA versions.
 +    __device__ __forceinline__ T operator()(const T& x) const { return x; }
 +  };
 +}
-
++
  namespace ctranslate2 {
    namespace ops {
+
 @@ -69,7 +78,7 @@
 
        if (!activation_type) {
