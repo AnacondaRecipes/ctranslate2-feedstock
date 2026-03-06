@@ -44,6 +44,7 @@ outputs:
         - "**/libcuda.so*"                          # [(gpu_variant or "").startswith("cuda")]
         - "**/libcudnn.so*"                         # [(gpu_variant or "").startswith("cuda")]
         - "**/nvcuda.dll"                           # [(gpu_variant or "").startswith("cuda")]
+        - "**/cudnn*.dll"                           # [(gpu_variant or "").startswith("cuda")]
       run_exports:
         - {{ pin_subpackage('libctranslate2', exact=True) }}
 
