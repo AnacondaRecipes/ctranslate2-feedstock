@@ -128,7 +128,8 @@ outputs:
         - ctranslate2
       commands:
         - pip check
-        - ct2-opennmt-py-converter --help
+        - python -c "from ctranslate2.converters import opennmt_py"
+        - ct2-opennmt-py-converter --help  # [not win]
       requires:
         - pip
 
