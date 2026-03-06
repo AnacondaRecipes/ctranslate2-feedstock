@@ -1,0 +1,42 @@
+Use _dll suffixed MKL import library names on Windows.
+Conda's mkl-devel 2025+ provides mkl_core_dll.lib instead of mkl_core.lib.
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -369,7 +369,7 @@
+   endif()
+
+   # Find MKL libraries.
+-  find_library(MKL_CORE_LIBRARY NAMES mkl_core HINTS ${MKL_ROOT}/lib ${MKL_ROOT}/lib/intel64)
++  find_library(MKL_CORE_LIBRARY NAMES mkl_core mkl_core_dll HINTS ${MKL_ROOT}/lib ${MKL_ROOT}/lib/intel64)
+   if(MKL_CORE_LIBRARY)
+     get_filename_component(MKL_LIBRARY_DIR ${MKL_CORE_LIBRARY} DIRECTORY)
+     message(STATUS "Found MKL library directory: ${MKL_LIBRARY_DIR}")
+@@ -380,8 +380,8 @@
+   add_definitions(-DCT2_WITH_MKL -DMKL_ILP64)
+   if(WIN32)
+     set(MKL_LIBRARIES
+-      ${MKL_LIBRARY_DIR}/mkl_core.lib
+-      ${MKL_LIBRARY_DIR}/mkl_intel_ilp64.lib
++      ${MKL_LIBRARY_DIR}/mkl_core_dll.lib
++      ${MKL_LIBRARY_DIR}/mkl_intel_ilp64_dll.lib
+       )
+   else()
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
+@@ -393,7 +393,7 @@
+
+   if(OPENMP_RUNTIME STREQUAL "INTEL")
+     if(WIN32)
+-      list(APPEND MKL_LIBRARIES ${MKL_LIBRARY_DIR}/mkl_intel_thread.lib)
++      list(APPEND MKL_LIBRARIES ${MKL_LIBRARY_DIR}/mkl_intel_thread_dll.lib)
+     else()
+       list(APPEND MKL_LIBRARIES ${MKL_LIBRARY_DIR}/libmkl_intel_thread.a)
+     endif()
+@@ -405,7 +405,7 @@
+   elseif(OPENMP_RUNTIME STREQUAL "NONE")
+     if(WIN32)
+-      list(APPEND MKL_LIBRARIES ${MKL_LIBRARY_DIR}/mkl_sequential.lib)
++      list(APPEND MKL_LIBRARIES ${MKL_LIBRARY_DIR}/mkl_sequential_dll.lib)
+     else()
+       list(APPEND MKL_LIBRARIES ${MKL_LIBRARY_DIR}/libmkl_sequential.a)
+     endif()
