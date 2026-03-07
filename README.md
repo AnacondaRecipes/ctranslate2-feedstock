@@ -34,4 +34,4 @@ conda install ctranslate2
 Feedstock Maintainers
 =====================
 
-* [@xkong](https://github.com/xkong/)
+* [@xkong-anaconda](https://github.com/xkong-anaconda/)
