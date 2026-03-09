@@ -6,5 +6,8 @@ build_parameters:
 # CUDA + CPU dispatch builds can be slow
 task_timeout: 14400  # 4 hours
 
+build_env_vars:
+  ANACONDA_ROCKET_ENABLE_PY314: yes
+
 # Upload to staging channel so faster-whisper can build before PR merges
 staging_channel_upload_target: ctranslate2-4.7.1-staging
