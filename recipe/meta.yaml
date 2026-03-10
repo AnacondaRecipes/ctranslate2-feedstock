@@ -131,7 +131,6 @@ outputs:
         - python
         - numpy
         - pyyaml >=5.3,<7
-        - setuptools
         - {{ pin_subpackage('libctranslate2', exact=True) }}
 
     test:

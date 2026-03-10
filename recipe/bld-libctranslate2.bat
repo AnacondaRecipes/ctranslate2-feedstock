@@ -45,7 +45,7 @@ cmake -S . -B build ^
     !CMAKE_ARGS_EXTRA!
 if errorlevel 1 exit 1
 
-cmake --build build --config Release --verbose
+cmake --build build --config Release --parallel %CPU_COUNT% --verbose
 if errorlevel 1 exit 1
 
 cmake --install build

@@ -49,5 +49,5 @@ cmake -S . -B build \
     -DWITH_RUY=OFF \
     ${CMAKE_ARGS_EXTRA}
 
-cmake --build build --config Release --verbose
+cmake --build build --config Release --parallel ${CPU_COUNT} --verbose
 cmake --install build
