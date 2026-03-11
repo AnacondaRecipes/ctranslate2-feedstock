@@ -1,0 +1,45 @@
+# CUDA 13 CCCL headers require vs2022; CUDA 12 and CPU use vs2019
+c_compiler:                        # [win]
+  - vs2019                         # [win]
+  - vs2019                         # [win]
+  - vs2022                         # [win]
+  - vs2022                         # [win]
+cxx_compiler:                      # [win]
+  - vs2019                         # [win]
+  - vs2019                         # [win]
+  - vs2022                         # [win]
+  - vs2022                         # [win]
+
+mkl:
+  - '2025'                         # [win or (linux and x86_64)]
+
+openblas:
+  - 0                              # [linux]
+
+blas_impl:
+  - mkl                        # [win or (linux and x86_64)]
+  - openblas                   # [linux]
+  - accelerate                 # [osx]
+  - cublas                     # [win or linux]
+
+gpu_variant:
+  - none
+  - cuda-12                    # [win or linux]
+  - cuda-13                    # [win or linux]
+  - cuda-13                    # [win or linux]
+
+cuda_compiler:                 # [win or linux]
+  - cuda-nvcc                  # [win or linux]
+
+cuda_compiler_version:         # [win or linux]
+  - none                       # [win or linux]
+  - 12.8                       # [win or linux]
+  - 13.0                       # [win or linux]
+  - 13.1                       # [win or linux]
+
+zip_keys:                      # [win or linux]
+  -                            # [win or linux]
+    - gpu_variant              # [win or linux]
+    - cuda_compiler_version    # [win or linux]
+    - c_compiler               # [win]
+    - cxx_compiler             # [win]
