@@ -1,6 +1,6 @@
 {% set name = "ctranslate2" %}
 {% set version = "4.7.1" %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: {{ name }}-meta
@@ -102,8 +102,8 @@ outputs:
       skip: true  # [py<39]
       number: {{ build_number + 100 }}  # [gpu_variant != "none"]
       number: {{ build_number }}        # [gpu_variant == "none"]
-      string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [(gpu_variant or "").startswith("cuda")]
-      string: cpu_{{ blas_impl }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                 # [gpu_variant == "none"]
+      string: cuda{{ cuda_compiler_version | replace('.', '') }}_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [(gpu_variant or "").startswith("cuda")]
+      string: cpu_{{ blas_impl }}_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                 # [gpu_variant == "none"]
       missing_dso_whitelist:                        # [(gpu_variant or "").startswith("cuda")]
         - "**/libcuda.so*"                          # [(gpu_variant or "").startswith("cuda")]
         - "**/nvcuda.dll"                           # [(gpu_variant or "").startswith("cuda")]
