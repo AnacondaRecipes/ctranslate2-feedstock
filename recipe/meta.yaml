@@ -1,6 +1,6 @@
 {% set name = "ctranslate2" %}
 {% set version = "4.7.1" %}
-{% set build_number = 1 %}
+{% set build_number = 2 %}
 
 package:
   name: {{ name }}-meta
@@ -57,23 +57,24 @@ outputs:
         - cmake
         - ninja-base
       host:
-        - cuda-version     {{ cuda_compiler_version }}        # [(gpu_variant or "").startswith("cuda")]
-        - cuda-cudart-dev  {{ cuda_compiler_version }}        # [(gpu_variant or "").startswith("cuda")]
-        - libcublas-dev                                       # [(gpu_variant or "").startswith("cuda")]
-        - libcurand-dev                                      # [(gpu_variant or "").startswith("cuda")]
-        - cudnn                                               # [(gpu_variant or "").startswith("cuda")]
-        - cuda-compat      {{ cuda_compiler_version }}        # [(gpu_variant or "").startswith("cuda") and linux]
-        - mkl-devel {{ mkl }}                                    # [blas_impl == "mkl"]
-        - intel-openmp                                        # [blas_impl == "mkl" and win]
-        - openblas-devel {{ openblas }}                        # [blas_impl == "openblas"]
-        - llvm-openmp {{ cxx_compiler_version }}               # [osx]
+        - cuda-version {{ cuda_compiler_version }}     # [(gpu_variant or "").startswith("cuda")]
+        - cuda-cudart-dev {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda")]
+        - libcublas-dev                                # [(gpu_variant or "").startswith("cuda")]
+        - libcurand-dev                                # [(gpu_variant or "").startswith("cuda")]
+        - cudnn                                        # [(gpu_variant or "").startswith("cuda")]
+        - cuda-compat {{ cuda_compiler_version }}      # [(gpu_variant or "").startswith("cuda") and linux]
+        - mkl-devel {{ mkl }}                          # [blas_impl == "mkl"]
+        - intel-openmp                                 # [blas_impl == "mkl" and win]
+        - openblas-devel {{ openblas }}                # [blas_impl == "openblas"]
+        - llvm-openmp {{ cxx_compiler_version }}       # [osx or (win and arm64)]
+        - libgomp                                      # [linux]
+        - vcomp14                                      # [(win and x86_64) and not (blas_impl == "mkl")]
       run:
-        - {{ pin_compatible('cuda-version', max_pin='x.x') }}  # [(gpu_variant or "").startswith("cuda")]
+        - {{ pin_compatible('cuda-version', max_pin='x.x') }}   # [(gpu_variant or "").startswith("cuda")]
         - cuda-version     {{ cuda_compiler_version }}          # [(gpu_variant or "").startswith("cuda")]
         - __cuda                                                # [(gpu_variant or "").startswith("cuda")]
         - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl" and win]
         - llvm-openmp                                           # [osx]
-        - _openmp_mutex                                         # [linux]
 
     test:
       commands:
