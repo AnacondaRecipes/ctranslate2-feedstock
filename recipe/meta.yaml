@@ -64,18 +64,19 @@ outputs:
         - cudnn                                        # [(gpu_variant or "").startswith("cuda")]
         - cuda-compat {{ cuda_compiler_version }}      # [(gpu_variant or "").startswith("cuda") and linux]
         - mkl-devel {{ mkl }}                          # [blas_impl == "mkl"]
-        - intel-openmp                                 # [blas_impl == "mkl" and win]
+        - intel-openmp                                 # [blas_impl == "mkl"]
         - openblas-devel {{ openblas }}                # [blas_impl == "openblas"]
         - llvm-openmp {{ cxx_compiler_version }}       # [osx or (win and arm64)]
-        - libgomp                                      # [linux]
+        - libgomp                                      # [linux and blas_impl == "openblas"]
         - vcomp14                                      # [(win and x86_64) and not (blas_impl == "mkl")]
       run:
         - {{ pin_compatible('cuda-version', max_pin='x.x') }}   # [(gpu_variant or "").startswith("cuda")]
         - cuda-version     {{ cuda_compiler_version }}          # [(gpu_variant or "").startswith("cuda")]
         - __cuda                                                # [(gpu_variant or "").startswith("cuda")]
-        - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl" and win]
-        - libgomp                                               # [linux]
+        - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl"]
+        - libgomp                                               # [linux and blas_impl == "openblas"]
         - llvm-openmp                                           # [osx]
+        - vcomp14                                               # [(win and x86_64) and not (blas_impl == "mkl")]
 
     test:
       commands:
