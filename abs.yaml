@@ -1,3 +1,6 @@
 
 # CUDA + CPU dispatch builds can be slow
 task_timeout: 14400  # 4 hours
+
+channels:
+  - build
