@@ -74,6 +74,7 @@ outputs:
         - cuda-version     {{ cuda_compiler_version }}          # [(gpu_variant or "").startswith("cuda")]
         - __cuda                                                # [(gpu_variant or "").startswith("cuda")]
         - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl" and win]
+        - libgomp                                               # [linux]
         - llvm-openmp                                           # [osx]
 
     test:
@@ -132,6 +133,8 @@ outputs:
         - python
         - numpy
         - pyyaml >=5.3,<7
+        # ctranslate2 4.7.1 requires setuptools, which is not installed.
+        - setuptools
         - {{ pin_subpackage('libctranslate2', exact=True) }}
 
     test:
