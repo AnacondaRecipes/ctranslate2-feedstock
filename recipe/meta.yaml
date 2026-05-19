@@ -74,7 +74,7 @@ outputs:
         - cuda-version     {{ cuda_compiler_version }}          # [(gpu_variant or "").startswith("cuda")]
         - __cuda                                                # [(gpu_variant or "").startswith("cuda")]
         - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl"]
-        - libgomp                                               # [linux and blas_impl == "openblas"]
+        - libgomp                                               # [linux and blas_impl != "mkl"]
         - llvm-openmp                                           # [osx]
         - vcomp14                                               # [(win and x86_64) and not (blas_impl == "mkl")]
 
