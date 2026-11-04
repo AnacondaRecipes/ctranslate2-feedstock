@@ -42,9 +42,12 @@ outputs:
       string: cpu_{{ blas_impl }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                 # [gpu_variant == "none"]
       missing_dso_whitelist:                        # [(gpu_variant or "").startswith("cuda")]
         - "**/libcuda.so*"                          # [(gpu_variant or "").startswith("cuda")]
-        - "**/libcudnn.so*"                         # [(gpu_variant or "").startswith("cuda")]
         - "**/nvcuda.dll"                           # [(gpu_variant or "").startswith("cuda")]
-        - "**/cudnn*.dll"                           # [(gpu_variant or "").startswith("cuda")]
+      ignore_run_exports:                           # [(gpu_variant or "").startswith("cuda") or blas_impl == "mkl"]
+        # only curand_kernel.h (device API) is used; no libcurand DSO is linked or loaded
+        - libcurand                                 # [(gpu_variant or "").startswith("cuda")]
+        # mkl-devel exports the Python mkl-service module; the C++ library never imports it
+        - mkl-service                               # [blas_impl == "mkl"]
       # Hand-written instead of pin_subpackage(exact=True): with a custom PKG_HASH string,
       # conda-build <26.9.0 (PBP workers) exports the placeholder h1234567 (conda/conda-build#6100).
       run_exports:
@@ -60,10 +63,9 @@ outputs:
         - cmake
         - ninja-base
       host:
-        - cuda-version {{ cuda_compiler_version }}     # [(gpu_variant or "").startswith("cuda")]
         - cuda-cudart-dev {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda")]
-        - libcublas-dev                                # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # solved against cuda-version above
-        - libcurand-dev                                # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # solved against cuda-version above
+        - libcublas-dev                                # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # cuda-cudart-dev above pins cuda-version
+        - libcurand-dev                                # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # cuda-cudart-dev above pins cuda-version
         - cudnn                                        # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # no cudnn key in the aggregate CBC
         - cuda-compat {{ cuda_compiler_version }}      # [(gpu_variant or "").startswith("cuda") and linux]
         - mkl-devel {{ mkl }}                          # [blas_impl == "mkl"]
@@ -72,8 +74,9 @@ outputs:
         - llvm-openmp {{ cxx_compiler_version }}       # [osx]
         - libgomp                                      # [linux and blas_impl != "mkl"] analint: host_section_needs_exact_pinnings  # OpenMP runtime of the gcc toolchain
         - vcomp14 {{ vcomp14 }}                        # [(win and x86_64) and not (blas_impl == "mkl")] analint: host_section_needs_exact_pinnings  # aggregate CBC pins vcomp14; the linter's bundled CBC lacks it
-        # Unvendored: the bundled include/nlohmann (3.11.2) is deleted in the build script
-        - nlohmann_json 3.11.2
+        # Unvendored: the bundled include/nlohmann (3.11.2) is deleted in the build script.
+        # 3.12.0 (not upstream's 3.11.2) so libctranslate2 co-installs with libmamba (nlohmann_json 3.12.0.*).
+        - nlohmann_json 3.12.0
       run:
         - __cuda                                                # [(gpu_variant or "").startswith("cuda")]
         - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl"]
@@ -97,15 +100,19 @@ outputs:
         Shared library and C++ headers of CTranslate2, a runtime for efficient inference with
         Transformer models that applies weights quantization, layer fusion and batch reordering
         to accelerate and reduce the memory usage of models on CPU and GPU.
-      # bundles header-only spdlog (MIT) everywhere and statically links cpu_features (Apache-2.0) on x86_64
-      license: MIT AND Apache-2.0  # [x86_64]
-      license: MIT                 # [not x86_64]
-      license_family: Other        # [x86_64]
-      license_family: MIT          # [not x86_64]
+      # Bundled: header-only spdlog (MIT) everywhere. x86_64: static cpu_features (Apache-2.0) and the
+      # AVX/AVX512 kernels' avx_mathfun.h (MIT, zlib origin) and avx512_mathfun.h (BSD-2, no copyright line upstream).
+      # arm64: the NEON kernels' neon_mathfun.h (zlib).
+      license: MIT AND Apache-2.0 AND BSD-2-Clause AND Zlib  # [x86_64]
+      license: MIT AND Zlib                                   # [not x86_64]
+      license_family: Other
       license_file:
         - LICENSE
         - third_party/spdlog/LICENSE
         - third_party/cpu_features/LICENSE  # [x86_64]
+        - third_party/avx_mathfun.h         # [x86_64]
+        - third_party/avx512_mathfun.h      # [x86_64]
+        - third_party/neon_mathfun.h        # [not x86_64]
       dev_url: https://github.com/OpenNMT/CTranslate2
       doc_url: https://opennmt.net/CTranslate2
 
@@ -149,7 +156,7 @@ outputs:
         - pybind11 2.13.6
         - pybind11-abi
         # the extension includes ctranslate2/models/model.h, which includes <nlohmann/json.hpp>
-        - nlohmann_json 3.11.2
+        - nlohmann_json 3.12.0
         - {{ pin_subpackage('libctranslate2', exact=True) }}
       run:
         - python
@@ -165,7 +172,9 @@ outputs:
       commands:
         - pip check
         - python -c "import ctranslate2; print(ctranslate2.get_supported_compute_types('cpu'))"
-        - python -c "import ctranslate2; n = ctranslate2.get_cuda_device_count(); print(n); print(ctranslate2.get_supported_compute_types('cuda') if n else 'no GPU')"  # [(gpu_variant or "").startswith("cuda")]
+        # CUDA test workers have a GPU: require one and launch a kernel (float32<->float16 convert) so a
+        # missing SASS/PTX target for the worker's architecture fails here instead of passing silently
+        - python -c "import numpy as np, ctranslate2 as c; assert c.get_cuda_device_count() > 0, 'no CUDA device'; print(c.get_supported_compute_types('cuda')); x = c.StorageView.from_array(np.arange(8, dtype=np.float32)).to_device(c.Device.cuda); y = x.to(c.DataType.float16).to(c.DataType.float32).to_device(c.Device.cpu); assert np.array_equal(np.asarray(y), np.arange(8, dtype=np.float32))"  # [(gpu_variant or "").startswith("cuda")]
         - python -c "from ctranslate2.converters import fairseq, marian, openai_gpt2, opennmt_py, opennmt_tf, opus_mt, transformers"
         # the .exe launchers fail silently on Windows; the module imports above cover it there
         - ct2-fairseq-converter --help        # [not win]

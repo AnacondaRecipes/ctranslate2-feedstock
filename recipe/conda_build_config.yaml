@@ -11,9 +11,6 @@ gpu_variant:
   - cuda-13                    # [win or linux]
   - cuda-13                    # [win or linux]
 
-cuda_compiler:                 # [win or linux]
-  - cuda-nvcc                  # [win or linux]
-
 cuda_compiler_version:         # [win or linux]
   - none                       # [win or linux]
   - 12.8                       # [win or linux]
