@@ -66,7 +66,9 @@ outputs:
         - cuda-cudart-dev {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda")]
         - libcublas-dev                                # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # cuda-cudart-dev above pins cuda-version
         - libcurand-dev                                # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # cuda-cudart-dev above pins cuda-version
-        - cudnn                                        # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # no cudnn key in the aggregate CBC
+        # libcudnn-dev, not the cudnn metapackage: its run_export names libcudnn, the package that owns
+        # the linked libcudnn.so.9 / cudnn*.dll (with cudnn, conda-build fails the overlinking check)
+        - libcudnn-dev                                 # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # no cudnn key in the aggregate CBC
         - cuda-compat {{ cuda_compiler_version }}      # [(gpu_variant or "").startswith("cuda") and linux]
         - mkl-devel {{ mkl }}                          # [blas_impl == "mkl"]
         - intel-openmp {{ mkl }}                       # [blas_impl == "mkl"]

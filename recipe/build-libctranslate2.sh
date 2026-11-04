@@ -12,7 +12,8 @@ if [[ ${gpu_variant:0:5} = "cuda-" ]]; then
     # Upstream's default CUDA_ARCH_LIST=Auto builds only the CI worker's GPU. FindCUDA's list parser
     # takes single-digit majors only, so Blackwell SASS is added as raw -gencode; 9.0+PTX JITs forward.
     if [[ ${cuda_compiler_version} == 12.* ]]; then
-        CT2_CUDA_ARCHS="5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX"
+        # no Maxwell: the fp16 kernels need sm_53+ (ptxas rejects compute_50)
+        CT2_CUDA_ARCHS="6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX"
     else
         # nvcc 13 dropped Maxwell, Pascal and Volta
         CT2_CUDA_ARCHS="7.5;8.0;8.6;8.9;9.0+PTX"
