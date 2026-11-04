@@ -1,6 +1,10 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+REM Unvendor nlohmann/json: build and install against the nlohmann_json package
+rmdir /s /q include\nlohmann
+if exist include\nlohmann exit 1
+
 set CMAKE_ARGS_EXTRA=
 
 REM --- GPU selection ---

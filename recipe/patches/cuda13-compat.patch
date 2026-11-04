@@ -1,6 +1,6 @@
-From 997140846674779e4519af1c64efa0eb4fc809ce Mon Sep 17 00:00:00 2001
-From: xkong-anaconda <xkong@anaconda.com>
-Date: Wed, 4 Nov 2026 10:05:10 -0600
+From 43dfa5ed82bdd060cd85452e76634d0900f26ac6 Mon Sep 17 00:00:00 2001
+From: Xianglong Kong <xkong@anaconda.com>
+Date: Wed, 4 Nov 2026 14:14:49 -0600
 Subject: [PATCH] Fix CUDA 13 (CCCL 2.8+) compatibility
 
 cub::FpLimits was removed in CCCL 2.8+ (CUDA 13). Use version-guarded

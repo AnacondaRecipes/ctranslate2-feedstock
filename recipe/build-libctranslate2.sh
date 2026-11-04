@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ex
 
+# Unvendor nlohmann/json: build and install against the nlohmann_json package
+rm -rf include/nlohmann
+
 CMAKE_ARGS_EXTRA=""
 
 # --- GPU selection ---

@@ -1,9 +1,19 @@
+From c0a88cdad7ebe67d1f8c47cdf27d6030a44f62c1 Mon Sep 17 00:00:00 2001
+From: Xianglong Kong <xkong@anaconda.com>
+Date: Wed, 4 Nov 2026 14:14:49 -0600
+Subject: [PATCH] Link shared MKL libraries on Linux
+
 Use shared MKL libraries (.so) instead of static (.a) on Linux.
 Conda's mkl-devel provides shared libraries only.
+---
+ CMakeLists.txt | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1370eed..9a9656c 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -386,8 +386,8 @@
+@@ -431,8 +431,8 @@ if(WITH_MKL)
    else()
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
      set(MKL_LIBRARIES
@@ -13,8 +23,8 @@ Conda's mkl-devel provides shared libraries only.
 +      ${MKL_LIBRARY_DIR}/libmkl_intel_ilp64.so
        )
    endif()
-
-@@ -395,19 +395,19 @@
+ 
+@@ -440,19 +440,19 @@ if(WITH_MKL)
      if(WIN32)
        list(APPEND MKL_LIBRARIES ${MKL_LIBRARY_DIR}/mkl_intel_thread.lib)
      else()

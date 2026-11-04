@@ -17,9 +17,6 @@ source:
   - url: https://github.com/gabime/spdlog/archive/v1.14.1.tar.gz
     sha256: 1586508029a7d0670dfcb2d97575dcdc242d3868a259742b69f100801ab4e16b
     folder: third_party/spdlog
-  - url: https://github.com/jarro2783/cxxopts/archive/v3.3.1.tar.gz
-    sha256: 3bfc70542c521d4b55a46429d808178916a579b28d048bd8c727ee76c39e2072
-    folder: third_party/cxxopts
   - url: https://github.com/google/cpu_features/archive/v0.9.0.tar.gz
     sha256: bdb3484de8297c49b59955c3b22dba834401bc2df984ef5cfc17acbe69c5018e
     folder: third_party/cpu_features
@@ -70,19 +67,21 @@ outputs:
         - cudnn                                        # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # no cudnn key in the aggregate CBC
         - cuda-compat {{ cuda_compiler_version }}      # [(gpu_variant or "").startswith("cuda") and linux]
         - mkl-devel {{ mkl }}                          # [blas_impl == "mkl"]
-        - intel-openmp                                 # [blas_impl == "mkl"] analint: host_section_needs_exact_pinnings  # run pins it via pin_compatible
+        - intel-openmp {{ mkl }}                       # [blas_impl == "mkl"]
         - openblas-devel {{ openblas }}                # [blas_impl == "openblas"]
-        - llvm-openmp {{ cxx_compiler_version }}       # [osx or (win and arm64)]
+        - llvm-openmp {{ cxx_compiler_version }}       # [osx]
         - libgomp                                      # [linux and blas_impl != "mkl"] analint: host_section_needs_exact_pinnings  # OpenMP runtime of the gcc toolchain
-        - vcomp14 {{ vcomp14 }}                        # [(win and x86_64) and not (blas_impl == "mkl")]
+        - vcomp14 {{ vcomp14 }}                        # [(win and x86_64) and not (blas_impl == "mkl")] analint: host_section_needs_exact_pinnings  # aggregate CBC pins vcomp14; the linter's bundled CBC lacks it
+        # Unvendored: the bundled include/nlohmann (3.11.2) is deleted in the build script
+        - nlohmann_json 3.11.2
       run:
-        - {{ pin_compatible('cuda-version', max_pin='x.x') }}   # [(gpu_variant or "").startswith("cuda")]
-        - cuda-version     {{ cuda_compiler_version }}          # [(gpu_variant or "").startswith("cuda")]
         - __cuda                                                # [(gpu_variant or "").startswith("cuda")]
         - {{ pin_compatible('intel-openmp') }}                  # [blas_impl == "mkl"]
         - libgomp                                               # [linux and blas_impl != "mkl"]
         - llvm-openmp                                           # [osx]
         - vcomp14                                               # [(win and x86_64) and not (blas_impl == "mkl")]
+        # public header models/model.h embeds nlohmann::json, whose inline ABI namespace carries x.y.z
+        - {{ pin_compatible('nlohmann_json', max_pin='x.x.x') }}
 
     test:
       commands:
@@ -94,9 +93,19 @@ outputs:
     about:
       home: https://github.com/OpenNMT/CTranslate2
       summary: C++ library for efficient inference with Transformer models
-      license: MIT
-      license_family: MIT
-      license_file: LICENSE
+      description: |
+        Shared library and C++ headers of CTranslate2, a runtime for efficient inference with
+        Transformer models that applies weights quantization, layer fusion and batch reordering
+        to accelerate and reduce the memory usage of models on CPU and GPU.
+      # bundles header-only spdlog (MIT) everywhere and statically links cpu_features (Apache-2.0) on x86_64
+      license: MIT AND Apache-2.0  # [x86_64]
+      license: MIT                 # [not x86_64]
+      license_family: Other        # [x86_64]
+      license_family: MIT          # [not x86_64]
+      license_file:
+        - LICENSE
+        - third_party/spdlog/LICENSE
+        - third_party/cpu_features/LICENSE  # [x86_64]
       dev_url: https://github.com/OpenNMT/CTranslate2
       doc_url: https://opennmt.net/CTranslate2
 
@@ -136,9 +145,11 @@ outputs:
         - pip
         - setuptools
         - wheel
+        # python/pyproject.toml [build-system]: pybind11==2.13.6
         - pybind11 2.13.6
         - pybind11-abi
-        - numpy {{ numpy }}
+        # the extension includes ctranslate2/models/model.h, which includes <nlohmann/json.hpp>
+        - nlohmann_json 3.11.2
         - {{ pin_subpackage('libctranslate2', exact=True) }}
       run:
         - python
@@ -149,20 +160,31 @@ outputs:
     test:
       imports:
         - ctranslate2
+        # `import ctranslate2` silently tolerates a missing extension; import it explicitly
+        - ctranslate2._ext
       commands:
         - pip check
-        - python -c "from ctranslate2.converters import opennmt_py"
-        - python -c "from ctranslate2.converters import fairseq"
-        - python -c "from ctranslate2.converters import openai_gpt2"
-        - python -c "from ctranslate2.converters import opus_mt"
-        - python -c "from ctranslate2.converters import opennmt_tf"
-        - ct2-opennmt-py-converter --help  # [not win]
+        - python -c "import ctranslate2; print(ctranslate2.get_supported_compute_types('cpu'))"
+        - python -c "import ctranslate2; n = ctranslate2.get_cuda_device_count(); print(n); print(ctranslate2.get_supported_compute_types('cuda') if n else 'no GPU')"  # [(gpu_variant or "").startswith("cuda")]
+        - python -c "from ctranslate2.converters import fairseq, marian, openai_gpt2, opennmt_py, opennmt_tf, opus_mt, transformers"
+        # the .exe launchers fail silently on Windows; the module imports above cover it there
+        - ct2-fairseq-converter --help        # [not win]
+        - ct2-marian-converter --help         # [not win]
+        - ct2-openai-gpt2-converter --help    # [not win]
+        - ct2-opennmt-py-converter --help     # [not win]
+        - ct2-opennmt-tf-converter --help     # [not win]
+        - ct2-opus-mt-converter --help        # [not win]
+        - ct2-transformers-converter --help   # [not win]
       requires:
         - pip
 
     about:
       home: https://github.com/OpenNMT/CTranslate2
       summary: Python bindings for CTranslate2 - fast Transformer inference
+      description: |
+        Python bindings for CTranslate2, a runtime for efficient inference with Transformer
+        models, plus converters (ct2-*-converter) from OpenNMT, Fairseq, Marian, OPUS-MT and
+        Hugging Face Transformers checkpoints.
       license: MIT
       license_family: MIT
       license_file: LICENSE

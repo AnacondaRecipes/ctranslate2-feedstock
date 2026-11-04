@@ -1,6 +1,6 @@
-From ea810cdf513754f25b9b0830ee6348af5519942e Mon Sep 17 00:00:00 2001
-From: xkong-anaconda <xkong@anaconda.com>
-Date: Wed, 4 Nov 2026 10:05:10 -0600
+From 66508385de9426f43569a2bf97389fd67a541cf8 Mon Sep 17 00:00:00 2001
+From: Xianglong Kong <xkong@anaconda.com>
+Date: Wed, 4 Nov 2026 14:14:49 -0600
 Subject: [PATCH] Use system thrust/cub from the CUDA toolkit
 
 Use system thrust/cub from the CUDA toolkit instead of bundled submodules.
