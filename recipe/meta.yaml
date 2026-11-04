@@ -1,6 +1,6 @@
 {% set name = "ctranslate2" %}
-{% set version = "4.7.1" %}
-{% set build_number = 2 %}
+{% set version = "4.8.5" %}
+{% set build_number = 0 %}
 
 package:
   name: {{ name }}-meta
@@ -8,7 +8,7 @@ package:
 
 source:
   - url: https://github.com/OpenNMT/CTranslate2/archive/refs/tags/v{{ version }}.tar.gz
-    sha256: 64beb499c1e33500a691dfbe10cc5def7b914413c7f7c2830b0e0d8d544a9f7e
+    sha256: 07d2dc455b259c29702dc4fbdfd26fb763179dc3fb4a0fc4a4d88fdfb13305d3
     patches:
       - patches/mkl-shared-libs.patch      # [linux]
       - patches/mkl-dll-libs-win.patch     # [win]
@@ -17,8 +17,8 @@ source:
   - url: https://github.com/gabime/spdlog/archive/v1.14.1.tar.gz
     sha256: 1586508029a7d0670dfcb2d97575dcdc242d3868a259742b69f100801ab4e16b
     folder: third_party/spdlog
-  - url: https://github.com/jarro2783/cxxopts/archive/v3.1.1.tar.gz
-    sha256: 523175f792eb0ff04f9e653c90746c12655f10cb70f1d5e6d6d9491420298a08
+  - url: https://github.com/jarro2783/cxxopts/archive/v3.3.1.tar.gz
+    sha256: 3bfc70542c521d4b55a46429d808178916a579b28d048bd8c727ee76c39e2072
     folder: third_party/cxxopts
   - url: https://github.com/google/cpu_features/archive/v0.9.0.tar.gz
     sha256: bdb3484de8297c49b59955c3b22dba834401bc2df984ef5cfc17acbe69c5018e
@@ -36,6 +36,8 @@ outputs:
     build:
       # do not mix cublas and mkl/openblas/accelerate
       skip: true  # [((gpu_variant or "").startswith("cuda") and (blas_impl != "cublas")) or (not (gpu_variant or "").startswith("cuda") and (blas_impl == "cublas"))]
+      # upstream ships no win-arm64 build (no wheel, no CI); mkl is absent there and CUDA has no CI GPU worker
+      skip: true  # [win and arm64]
       # GPU variant gets build_number + 100 for solver preference
       number: {{ build_number + 100 }}  # [gpu_variant != "none"]
       number: {{ build_number }}        # [gpu_variant == "none"]
@@ -46,11 +48,15 @@ outputs:
         - "**/libcudnn.so*"                         # [(gpu_variant or "").startswith("cuda")]
         - "**/nvcuda.dll"                           # [(gpu_variant or "").startswith("cuda")]
         - "**/cudnn*.dll"                           # [(gpu_variant or "").startswith("cuda")]
+      # Hand-written instead of pin_subpackage(exact=True): with a custom PKG_HASH string,
+      # conda-build <26.9.0 (PBP workers) exports the placeholder h1234567 (conda/conda-build#6100).
       run_exports:
-        - {{ pin_subpackage('libctranslate2', exact=True) }}
+        - libctranslate2 {{ version }} cuda{{ cuda_compiler_version | replace('.', '') }}_*  # [(gpu_variant or "").startswith("cuda")]
+        - libctranslate2 {{ version }} cpu_{{ blas_impl }}_*                                 # [gpu_variant == "none"]
 
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - {{ compiler('cuda') }}                              # [(gpu_variant or "").startswith("cuda")]
@@ -59,16 +65,16 @@ outputs:
       host:
         - cuda-version {{ cuda_compiler_version }}     # [(gpu_variant or "").startswith("cuda")]
         - cuda-cudart-dev {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda")]
-        - libcublas-dev                                # [(gpu_variant or "").startswith("cuda")]
-        - libcurand-dev                                # [(gpu_variant or "").startswith("cuda")]
-        - cudnn                                        # [(gpu_variant or "").startswith("cuda")]
+        - libcublas-dev                                # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # solved against cuda-version above
+        - libcurand-dev                                # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # solved against cuda-version above
+        - cudnn                                        # [(gpu_variant or "").startswith("cuda")] analint: host_section_needs_exact_pinnings  # no cudnn key in the aggregate CBC
         - cuda-compat {{ cuda_compiler_version }}      # [(gpu_variant or "").startswith("cuda") and linux]
         - mkl-devel {{ mkl }}                          # [blas_impl == "mkl"]
-        - intel-openmp                                 # [blas_impl == "mkl"]
+        - intel-openmp                                 # [blas_impl == "mkl"] analint: host_section_needs_exact_pinnings  # run pins it via pin_compatible
         - openblas-devel {{ openblas }}                # [blas_impl == "openblas"]
         - llvm-openmp {{ cxx_compiler_version }}       # [osx or (win and arm64)]
-        - libgomp                                      # [linux and blas_impl != "mkl"]
-        - vcomp14                                      # [(win and x86_64) and not (blas_impl == "mkl")]
+        - libgomp                                      # [linux and blas_impl != "mkl"] analint: host_section_needs_exact_pinnings  # OpenMP runtime of the gcc toolchain
+        - vcomp14 {{ vcomp14 }}                        # [(win and x86_64) and not (blas_impl == "mkl")]
       run:
         - {{ pin_compatible('cuda-version', max_pin='x.x') }}   # [(gpu_variant or "").startswith("cuda")]
         - cuda-version     {{ cuda_compiler_version }}          # [(gpu_variant or "").startswith("cuda")]
@@ -103,6 +109,7 @@ outputs:
       # Match skip logic from libctranslate2
       skip: true  # [((gpu_variant or "").startswith("cuda") and (blas_impl != "cublas")) or (not (gpu_variant or "").startswith("cuda") and (blas_impl == "cublas"))]
       skip: true  # [py<39]
+      skip: true  # [win and arm64]
       number: {{ build_number + 100 }}  # [gpu_variant != "none"]
       number: {{ build_number }}        # [gpu_variant == "none"]
       string: cuda{{ cuda_compiler_version | replace('.', '') }}_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [(gpu_variant or "").startswith("cuda")]
@@ -121,21 +128,22 @@ outputs:
 
     requirements:
       build:
+        - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
       host:
         - python
         - pip
         - setuptools
-        - pybind11
-        - numpy
+        - wheel
+        - pybind11 2.13.6
+        - pybind11-abi
+        - numpy {{ numpy }}
         - {{ pin_subpackage('libctranslate2', exact=True) }}
       run:
         - python
         - numpy
         - pyyaml >=5.3,<7
-        # ctranslate2 4.7.1 requires setuptools, which is not installed.
-        - setuptools
         - {{ pin_subpackage('libctranslate2', exact=True) }}
 
     test:
