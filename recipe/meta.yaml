@@ -102,19 +102,19 @@ outputs:
         Shared library and C++ headers of CTranslate2, a runtime for efficient inference with
         Transformer models that applies weights quantization, layer fusion and batch reordering
         to accelerate and reduce the memory usage of models on CPU and GPU.
-      # Bundled: header-only spdlog (MIT) everywhere. x86_64: static cpu_features (Apache-2.0) and the
-      # AVX/AVX512 kernels' avx_mathfun.h (MIT, zlib origin) and avx512_mathfun.h (BSD-2, no copyright line upstream).
-      # arm64: the NEON kernels' neon_mathfun.h (zlib).
-      license: MIT AND Apache-2.0 AND BSD-2-Clause AND Zlib  # [x86_64]
-      license: MIT AND Zlib                                   # [not x86_64]
+      license: MIT AND Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND Zlib  # [x86_64]
+      license: MIT AND BSD-3-Clause AND Zlib                                   # [not x86_64]
       license_family: Other
+      # Notices without a license file in the source tarball live in recipe/licenses.
       license_file:
         - LICENSE
-        - third_party/spdlog/LICENSE
-        - third_party/cpu_features/LICENSE  # [x86_64]
-        - third_party/avx_mathfun.h         # [x86_64]
-        - third_party/avx512_mathfun.h      # [x86_64]
-        - third_party/neon_mathfun.h        # [not x86_64]
+        - third_party/spdlog/LICENSE                # header-only spdlog compiled in (MIT)
+        - third_party/cpu_features/LICENSE          # static cpu_features (Apache-2.0)  [x86_64]
+        - licenses/flash-attention-LICENSE.txt      # installed include/ctranslate2/ops/flash-attention/*.h (BSD-3, from Dao-AILab/flash-attention v2.8.3)
+        - licenses/half-LICENSE.txt                 # installed include/half_float/half.hpp (MIT, notice from its header)
+        - licenses/avx_mathfun-LICENSE.txt          # third_party/avx_mathfun.h in the AVX kernels (MIT + zlib, notice from its header)  [x86_64]
+        - licenses/simd_utils-LICENSE.txt           # third_party/avx512_mathfun.h in the AVX512 kernels (BSD-2, from JishinMaster/simd_utils)  [x86_64]
+        - licenses/neon_mathfun-LICENSE.txt         # third_party/neon_mathfun.h in the NEON kernels (zlib, notice from its header)  [not x86_64]
       dev_url: https://github.com/OpenNMT/CTranslate2
       doc_url: https://opennmt.net/CTranslate2
 
