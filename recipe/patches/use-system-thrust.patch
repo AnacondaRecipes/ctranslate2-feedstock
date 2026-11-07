@@ -1,54 +1,76 @@
+From 66508385de9426f43569a2bf97389fd67a541cf8 Mon Sep 17 00:00:00 2001
+From: Xianglong Kong <xkong@anaconda.com>
+Date: Wed, 4 Nov 2026 14:14:49 -0600
+Subject: [PATCH] Use system thrust/cub from the CUDA toolkit
+
 Use system thrust/cub from the CUDA toolkit instead of bundled submodules.
 Conda's cuda-cccl package provides thrust and cub headers in the CUDA toolkit.
 Also add missing explicit thrust includes that the bundled version provided
 transitively but the system CUDA toolkit version does not.
+---
+ CMakeLists.txt          | 7 ++-----
+ src/cuda/helpers.h      | 5 +++++
+ src/cuda/primitives.cu  | 2 ++
+ src/ops/bias_add_gpu.cu | 2 ++
+ 4 files changed, 11 insertions(+), 5 deletions(-)
 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1370eed..b9e2a07 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -554,10 +554,8 @@
+@@ -606,11 +606,8 @@ if (WITH_CUDA)
    # We should ensure that the Thrust include directories appear before
    # -I/usr/local/cuda/include for both GCC and NVCC, so that the headers
    # are coming from the submodule and not the system.
 -  set(THRUST_INCLUDE_DIRS
--    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/thrust/dependencies/cub
--    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/thrust
+-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/thrust/cub
+-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/thrust/thrust
+-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/thrust/libcudacxx/include
 -    )
 +  # Use system thrust/cub from CUDA toolkit (provided by cuda-cccl)
 +  set(THRUST_INCLUDE_DIRS ${CUDA_TOOLKIT_ROOT_DIR}/include)
    cuda_include_directories(${THRUST_INCLUDE_DIRS})
    list(APPEND PRIVATE_INCLUDE_DIRECTORIES ${THRUST_INCLUDE_DIRS})
-
+ 
+diff --git a/src/cuda/helpers.h b/src/cuda/helpers.h
+index 7b99149..fd8b8b5 100644
 --- a/src/cuda/helpers.h
 +++ b/src/cuda/helpers.h
-@@ -11,5 +11,11 @@
+@@ -12,6 +12,11 @@
  #define __nv_bfloat16 __hip_bfloat16
  #else
  #include <cuda_fp16.h>
 +#include <thrust/copy.h>
 +#include <thrust/functional.h>
-+#include <thrust/iterator/counting_iterator.h>
 +#include <thrust/iterator/permutation_iterator.h>
 +#include <thrust/iterator/transform_iterator.h>
 +#include <thrust/transform.h>
  #include <cuda_bf16.h>
  #endif
+ 
+diff --git a/src/cuda/primitives.cu b/src/cuda/primitives.cu
+index bd52800..ef5e5a0 100644
 --- a/src/cuda/primitives.cu
 +++ b/src/cuda/primitives.cu
-@@ -30,4 +30,8 @@
+@@ -30,6 +30,8 @@
  #endif
  #include <thrust/device_ptr.h>
-+#include <thrust/extrema.h>
+ #include <thrust/extrema.h>
 +#include <thrust/fill.h>
 +#include <thrust/functional.h>
-+#include <thrust/reduce.h>
-
+ #include <thrust/reduce.h>
+ 
  #include "cuda/helpers.h"
+diff --git a/src/ops/bias_add_gpu.cu b/src/ops/bias_add_gpu.cu
+index 0f2a90f..6be73f1 100644
 --- a/src/ops/bias_add_gpu.cu
 +++ b/src/ops/bias_add_gpu.cu
-@@ -3,4 +3,6 @@
+@@ -2,6 +2,8 @@
+ 
  #include "type_dispatch.h"
  #include "cuda/helpers.h"
 +#include <thrust/iterator/zip_iterator.h>
 +#include <thrust/tuple.h>
-
+ 
  namespace ctranslate2 {
+   namespace ops {

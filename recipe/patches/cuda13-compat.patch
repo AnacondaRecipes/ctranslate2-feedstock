@@ -1,4 +1,7 @@
-Fix CUDA 13 (CCCL 2.8+) compatibility: cub::FpLimits and thrust::identity removed.
+From 43dfa5ed82bdd060cd85452e76634d0900f26ac6 Mon Sep 17 00:00:00 2001
+From: Xianglong Kong <xkong@anaconda.com>
+Date: Wed, 4 Nov 2026 14:14:49 -0600
+Subject: [PATCH] Fix CUDA 13 (CCCL 2.8+) compatibility
 
 cub::FpLimits was removed in CCCL 2.8+ (CUDA 13). Use version-guarded
 macro CT2_FP_LOWEST(T) with cuda::std::numeric_limits for CUDA 13+,
@@ -6,7 +9,13 @@ keeping cub::FpLimits for CUDA 12.
 
 thrust::identity<T> was removed in CCCL 2.8+. Provide a simple
 identity functor that works across all CUDA versions.
+---
+ src/ops/dequantize_gpu.cu | 11 ++++++++++-
+ src/ops/topk_gpu.cu       | 18 ++++++++++++++----
+ 2 files changed, 24 insertions(+), 5 deletions(-)
 
+diff --git a/src/ops/dequantize_gpu.cu b/src/ops/dequantize_gpu.cu
+index d14ae7e..fa6ace3 100644
 --- a/src/ops/dequantize_gpu.cu
 +++ b/src/ops/dequantize_gpu.cu
 @@ -2,6 +2,15 @@
@@ -34,6 +43,8 @@ identity functor that works across all CUDA versions.
  
        } else {
          switch (*activation_type) {
+diff --git a/src/ops/topk_gpu.cu b/src/ops/topk_gpu.cu
+index cb6b378..d51bb1c 100644
 --- a/src/ops/topk_gpu.cu
 +++ b/src/ops/topk_gpu.cu
 @@ -136,6 +136,16 @@ namespace hipcub {
@@ -80,12 +91,12 @@ identity functor that works across all CUDA versions.
        }
        __syncthreads();
      }
-@@ -259,7 +269,7 @@ namespace fastertransformer {
- 
-       if (tid == 0) {
+@@ -261,7 +271,7 @@ namespace fastertransformer {
          topks[ite] = total;
--        s_val[total.p] = cub::FpLimits<T>::Lowest();
-+        s_val[total.p] = CT2_FP_LOWEST(T);
+         // An exhausted reduction has no value to invalidate.
+         if (total.p != NOT_FOUND)
+-          s_val[total.p] = cub::FpLimits<T>::Lowest();
++          s_val[total.p] = CT2_FP_LOWEST(T);
        }
        __syncthreads();
      }

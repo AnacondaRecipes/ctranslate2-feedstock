@@ -9,16 +9,12 @@ gpu_variant:
   - none
   - cuda-12                    # [win or linux]
   - cuda-13                    # [win or linux]
-  - cuda-13                    # [win or linux]
 
-cuda_compiler:                 # [win or linux]
-  - cuda-nvcc                  # [win or linux]
-
+# Same CUDA versions as the aggregate CBC (12.9, 13.0); restated because the CPU variants need `none`
 cuda_compiler_version:         # [win or linux]
   - none                       # [win or linux]
-  - 12.8                       # [win or linux]
+  - 12.9                       # [win or linux]
   - 13.0                       # [win or linux]
-  - 13.1                       # [win or linux]
 
 zip_keys:                      # [win or linux]
   -                            # [win or linux]
